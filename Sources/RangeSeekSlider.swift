@@ -100,7 +100,18 @@ import UIKit
             maxLabel.isHidden = hideLabels
         }
     }
-
+    @IBInspectable open var hideMinLabel: Bool = false {
+        didSet {
+            minLabel.isHidden = hideMinLabel
+        }
+    }
+    @IBInspectable open var hideMaxLabel: Bool = false {
+        didSet {
+            maxLabel.isHidden = hideMaxLabel
+        }
+    }
+    
+    
     /// fixes the labels above the slider controls. true: labels will be fixed to both ends. false: labels will move with the handles. Default is false.
     @IBInspectable open var labelsFixed: Bool = false
 
@@ -123,10 +134,10 @@ import UIKit
     }
 
     /// The color of the minimum value text label. If not set, the default is the tintColor.
-    @IBInspectable open var minLabelColor: UIColor?
+    @IBInspectable open var minLabelColor: UIColor? = .white
 
     /// The color of the maximum value text label. If not set, the default is the tintColor.
-    @IBInspectable open var maxLabelColor: UIColor?
+    @IBInspectable open var maxLabelColor: UIColor? = .white
 
     /// Handle slider with custom color, you can set custom color for your handle
     @IBInspectable open var handleColor: UIColor?
@@ -175,7 +186,7 @@ import UIKit
     }
 
     /// Handle diameter (default 16.0)
-    @IBInspectable open var handleDiameter: CGFloat = 16.0 {
+    @IBInspectable open var handleDiameter: CGFloat = 35.0 {
         didSet {
             leftHandle.cornerRadius = handleDiameter / 2.0
             rightHandle.cornerRadius = handleDiameter / 2.0
@@ -185,10 +196,10 @@ import UIKit
     }
 
     /// Selected handle diameter multiplier (default 1.7)
-    @IBInspectable open var selectedHandleDiameterMultiplier: CGFloat = 1.7
+    @IBInspectable open var selectedHandleDiameterMultiplier: CGFloat = 1.0
 
     /// Set the slider line height (default 1.0)
-    @IBInspectable open var lineHeight: CGFloat = 1.0 {
+    @IBInspectable open var lineHeight: CGFloat = 5.0 {
         didSet {
             updateLineHeight()
         }
@@ -202,12 +213,6 @@ import UIKit
         }
     }
 
-    /// Set padding between label and handle (default 8.0)
-    @IBInspectable open var labelPadding: CGFloat = 8.0 {
-        didSet {
-            updateLabelPositions()
-        }
-    }
 
     /// The label displayed in accessibility mode for minimum value handler. If not set, the default is empty String.
     @IBInspectable open var minLabelAccessibilityLabel: String?
@@ -257,7 +262,7 @@ import UIKit
         element.accessibilityHint = minLabelAccessibilityHint
         element.accessibilityValue = minLabel.string as? String
         element.accessibilityFrame = convert(leftHandle.frame, to: nil)
-        element.accessibilityTraits = UIAccessibilityTraitAdjustable
+        element.accessibilityTraits = UIAccessibilityTraits.adjustable
         return element
     }
 
@@ -268,7 +273,7 @@ import UIKit
         element.accessibilityHint = maxLabelAccessibilityHint
         element.accessibilityValue = maxLabel.string as? String
         element.accessibilityFrame = convert(rightHandle.frame, to: nil)
-        element.accessibilityTraits = UIAccessibilityTraitAdjustable
+        element.accessibilityTraits = UIAccessibilityTraits.adjustable
         return element
     }
 
@@ -283,12 +288,11 @@ import UIKit
             updateLabelValues()
             updateColors()
             updateHandlePositions()
-            updateLabelPositions()
         }
     }
 
     open override var intrinsicContentSize: CGSize {
-        return CGSize(width: UIViewNoIntrinsicMetric, height: 65.0)
+        return CGSize(width: UIView.noIntrinsicMetric, height: 65.0)
     }
 
 
@@ -382,10 +386,13 @@ import UIKit
 
     /// When subclassing **RangeSeekSlider** and setting each item in **setupStyle()**, the design is reflected in Interface Builder as well.
     open func setupStyle() {}
-
+    
+    public var minLabelFrame:CGRect = .zero
+    public var maxLabelFrame:CGRect = .zero
+    
 
     // MARK: - private methods
-
+ 
     private func setup() {
         isAccessibilityElement = false
         accessibleElements = [leftHandleAccessibilityElement, rightHandleAccessibilityElement]
@@ -412,19 +419,24 @@ import UIKit
 
         // draw the text labels
         let labelFontSize: CGFloat = 12.0
-        let labelFrame: CGRect = CGRect(x: 0.0, y: 0.0, width: 75.0, height: 14.0)
+        
+        minLabelFrame = CGRect(x: leftHandle.position.x - 37, y: leftHandle.frame.midY - 7, width: 75.0, height: 14.0)
+        maxLabelFrame = CGRect(x: rightHandle.position.x - 37, y: rightHandle.frame.midY - 7, width: 75.0, height: 14.0)
 
         minLabelFont = UIFont.systemFont(ofSize: labelFontSize)
-        minLabel.alignmentMode = kCAAlignmentCenter
-        minLabel.frame = labelFrame
+        minLabel.alignmentMode = CATextLayerAlignmentMode.center
+        minLabel.frame = minLabelFrame
         minLabel.contentsScale = UIScreen.main.scale
-        layer.addSublayer(minLabel)
+        
+        leftHandle.addSublayer(minLabel)
 
         maxLabelFont = UIFont.systemFont(ofSize: labelFontSize)
-        maxLabel.alignmentMode = kCAAlignmentCenter
-        maxLabel.frame = labelFrame
+        maxLabel.alignmentMode = CATextLayerAlignmentMode.center
+        maxLabel.frame = maxLabelFrame
         maxLabel.contentsScale = UIScreen.main.scale
-        layer.addSublayer(maxLabel)
+        
+        rightHandle.addSublayer(maxLabel)
+
 
         setupStyle()
 
@@ -489,11 +501,11 @@ import UIKit
         }
 
         if let nsstring = minLabel.string as? NSString {
-            minLabelTextSize = nsstring.size(attributes: [NSFontAttributeName: minLabelFont])
+            minLabelTextSize = nsstring.size(withAttributes: convertToOptionalNSAttributedStringKeyDictionary([convertFromNSAttributedStringKey(NSAttributedString.Key.font): minLabelFont]))
         }
 
         if let nsstring = maxLabel.string as? NSString {
-            maxLabelTextSize = nsstring.size(attributes: [NSFontAttributeName: maxLabelFont])
+            maxLabelTextSize = nsstring.size(withAttributes: convertToOptionalNSAttributedStringKeyDictionary([convertFromNSAttributedStringKey(NSAttributedString.Key.font): maxLabelFont]))
         }
     }
 
@@ -548,77 +560,7 @@ import UIKit
                                                 height: lineHeight)
     }
 
-    private func updateLabelPositions() {
-        // the center points for the labels are X = the same x position as the relevant handle. Y = the y position of the handle minus half the height of the text label, minus some padding.
-
-        minLabel.frame.size = minLabelTextSize
-        maxLabel.frame.size = maxLabelTextSize
-
-        if labelsFixed {
-            updateFixedLabelPositions()
-            return
-        }
-
-        let minSpacingBetweenLabels: CGFloat = 8.0
-
-        let newMinLabelCenter: CGPoint = CGPoint(x: leftHandle.frame.midX,
-                                                 y: leftHandle.frame.minY - (minLabelTextSize.height / 2.0) - labelPadding)
-
-        let newMaxLabelCenter: CGPoint = CGPoint(x: rightHandle.frame.midX,
-                                                 y: rightHandle.frame.minY - (maxLabelTextSize.height / 2.0) - labelPadding)
-
-        let newLeftMostXInMaxLabel: CGFloat = newMaxLabelCenter.x - maxLabelTextSize.width / 2.0
-        let newRightMostXInMinLabel: CGFloat = newMinLabelCenter.x + minLabelTextSize.width / 2.0
-        let newSpacingBetweenTextLabels: CGFloat = newLeftMostXInMaxLabel - newRightMostXInMinLabel
-
-        if disableRange || newSpacingBetweenTextLabels > minSpacingBetweenLabels {
-            minLabel.position = newMinLabelCenter
-            maxLabel.position = newMaxLabelCenter
-
-            if minLabel.frame.minX < 0.0 {
-                minLabel.frame.origin.x = 0.0
-            }
-
-            if maxLabel.frame.maxX > frame.width {
-                maxLabel.frame.origin.x = frame.width - maxLabel.frame.width
-            }
-        } else {
-            let increaseAmount: CGFloat = minSpacingBetweenLabels - newSpacingBetweenTextLabels
-            minLabel.position = CGPoint(x: newMinLabelCenter.x - increaseAmount / 2.0, y: newMinLabelCenter.y)
-            maxLabel.position = CGPoint(x: newMaxLabelCenter.x + increaseAmount / 2.0, y: newMaxLabelCenter.y)
-
-            // Update x if they are still in the original position
-            if minLabel.position.x == maxLabel.position.x {
-                minLabel.position.x = leftHandle.frame.midX
-                maxLabel.position.x = leftHandle.frame.midX + minLabel.frame.width / 2.0 + minSpacingBetweenLabels + maxLabel.frame.width / 2.0
-            }
-
-            if minLabel.frame.minX < 0.0 {
-                minLabel.frame.origin.x = 0.0
-                maxLabel.frame.origin.x = minSpacingBetweenLabels + minLabel.frame.width
-            }
-
-            if maxLabel.frame.maxX > frame.width {
-                maxLabel.frame.origin.x = frame.width - maxLabel.frame.width
-                minLabel.frame.origin.x = maxLabel.frame.origin.x - minSpacingBetweenLabels - minLabel.frame.width
-            }
-        }
-    }
-
-    private func updateFixedLabelPositions() {
-        minLabel.position = CGPoint(x: xPositionAlongLine(for: minValue),
-                                    y: sliderLine.frame.minY - (minLabelTextSize.height / 2.0) - (handleDiameter / 2.0) - labelPadding)
-        maxLabel.position = CGPoint(x: xPositionAlongLine(for: maxValue),
-                                    y: sliderLine.frame.minY - (maxLabelTextSize.height / 2.0) - (handleDiameter / 2.0) - labelPadding)
-        if minLabel.frame.minX < 0.0 {
-            minLabel.frame.origin.x = 0.0
-        }
-
-        if maxLabel.frame.maxX > frame.width {
-            maxLabel.frame.origin.x = frame.width - maxLabel.frame.width
-        }
-    }
-
+    
     fileprivate func refresh() {
         if enableStep && step > 0.0 {
             selectedMinValue = CGFloat(roundf(Float(selectedMinValue / step))) * step
@@ -668,7 +610,6 @@ import UIKit
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         updateHandlePositions()
-        updateLabelPositions()
         CATransaction.commit()
 
         updateLabelValues()
@@ -691,11 +632,9 @@ import UIKit
 
         CATransaction.begin()
         CATransaction.setAnimationDuration(0.3)
-        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut))
+        CATransaction.setAnimationTimingFunction(CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut))
         handle.transform = transform
 
-        // the label above the handle will need to move too if the handle changes size
-        updateLabelPositions()
 
         CATransaction.commit()
     }
@@ -759,4 +698,15 @@ private extension CGPoint {
         let distY: CGFloat = to.y - y
         return sqrt(distX * distX + distY * distY)
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToOptionalNSAttributedStringKeyDictionary(_ input: [String: Any]?) -> [NSAttributedString.Key: Any]? {
+	guard let input = input else { return nil }
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSAttributedStringKey(_ input: NSAttributedString.Key) -> String {
+	return input.rawValue
 }

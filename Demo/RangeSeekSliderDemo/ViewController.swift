@@ -24,9 +24,18 @@ final class ViewController: UIViewController {
     private func setup() {
         // standard range slider
         rangeSlider.delegate = self
-
+        
+        rangeSlider.minValue = 1
+        rangeSlider.maxValue = 286
+  
+        
+        rangeSlider.colorBetweenHandles = UIColor(red:0.325, green:0.565, blue:0.333, alpha:1.000)
+        rangeSlider.handleColor = UIColor(red:0.325, green:0.565, blue:0.333, alpha:1.000)
+        rangeSlider.tintColor = UIColor(red:0.753, green:0.827, blue:0.761, alpha:1.000)
+        
         // currency range slider
         rangeSliderCurrency.delegate = self
+        rangeSliderCurrency.labelsFixed = true
         rangeSliderCurrency.minValue = 50.0
         rangeSliderCurrency.maxValue = 150.0
         rangeSliderCurrency.selectedMinValue = 60.0
@@ -64,6 +73,10 @@ extension ViewController: RangeSeekSliderDelegate {
 
     func rangeSeekSlider(_ slider: RangeSeekSlider, didChange minValue: CGFloat, maxValue: CGFloat) {
         if slider === rangeSlider {
+//            if minValue == maxValue {
+//                rangeSlider.minDistance = 5
+//                rangeSlider.hideMaxLabel = minValue == maxValue
+           
             print("Standard slider updated. Min Value: \(minValue) Max Value: \(maxValue)")
         } else if slider === rangeSliderCurrency {
             print("Currency slider updated. Min Value: \(minValue) Max Value: \(maxValue)")
