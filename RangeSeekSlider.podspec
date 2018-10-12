@@ -1,6 +1,5 @@
 Pod::Spec.new do |s|
-  s.name                  = 'm3owXSlider'
-  s.module_name           = 'm3owXSlider'
+  s.name                  = 'RangeSeekSlider'
   s.version               = '1.7.0'
   s.summary               = 'RangeSeekSlider provides a customizable range slider like a UISlider.'
   s.description           = <<-DESC
