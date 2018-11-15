@@ -19,11 +19,19 @@ final class ViewController: UIViewController {
         super.viewDidLoad()
 
         setup()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.rangeSlider.selectedMinValue = 2
+            self.rangeSlider.selectedMaxValue = 5
+            self.rangeSlider.layoutSubviews()
+            print("updated")
+        }
     }
 
     private func setup() {
         // standard range slider
         rangeSlider.delegate = self
+        
+        
         
         rangeSlider.minValue = 1
         rangeSlider.maxValue = 286

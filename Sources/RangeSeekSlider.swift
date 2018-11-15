@@ -54,7 +54,6 @@ import UIKit
         didSet {
             if selectedMinValue < minValue {
                 selectedMinValue = minValue
-                updateHandlePositions()
             }
         }
     }
@@ -65,7 +64,6 @@ import UIKit
         didSet {
             if selectedMaxValue > maxValue {
                 selectedMaxValue = maxValue
-                updateHandlePositions()
             }
         }
     }
